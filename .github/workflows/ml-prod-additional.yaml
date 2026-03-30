@@ -1,0 +1,50 @@
+name: ML Product CI Pipeline
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests
+        run: pytest tests/ -v
+
+      - name: Run ML evaluation
+        run: python scripts/evaluate_model.py --threshold 0.85
+
+      - name: Verify API starts
+        run: |
+          python -m uvicorn app:app --host 0.0.0.0 --port 8000 &
+          sleep 5
+          curl -f http://localhost:8000/health || exit 1
+
+      - name: Validate training data schema
+        run: python scripts/validate_data.py
+
+      - name: Run model evaluation
+        run: |
+          python scripts/evaluate_model.py \
+            --model models/latest.pkl \
+            --test-data data/test.csv \
+            --min-accuracy 0.85 \
+            --max-latency-ms 200
+
+      - name: Check model size
+        run: |
+          MAX_SIZE_MB=100
+          SIZE=$(du -m models/latest.pkl | cut -f1)
+          if [ "$SIZE" -gt "$MAX_SIZE_MB" ]; then
+            echo "Model too large: ${SIZE}MB > ${MAX_SIZE_MB}MB"
+            exit 1
+          fi
+
