@@ -48,7 +48,7 @@ def load_and_evaluate_model(model_path: str, test_data_path: str):
     # Stub: always returns 0.90 accuracy and 120ms latency so the demo pipeline passes baseline.
     # To simulate a failure during class, change accuracy to 0.75 and push.
     accuracy = 0.90
-    latency_ms = 350.0
+    latency_ms = 120.0
     return accuracy, latency_ms
 
 
