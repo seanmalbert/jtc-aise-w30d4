@@ -1,4 +1,4 @@
-name: ML Product CI Pipeline
+name: Additional ML Product CI Pipeline
 
 on: [push]
 
